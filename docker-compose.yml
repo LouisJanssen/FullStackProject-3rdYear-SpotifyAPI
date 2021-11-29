@@ -1,0 +1,36 @@
+version: "3"
+services:
+    workshop-php:
+        image: "pauulog/php-docker-dev:latest"
+        container_name: "workshop-php"
+        links:
+          - "workshop-mariadb:mariadb.host"
+        volumes:
+            - "./:/h3-workshop:rw"
+        working_dir: /h3-workshop
+        restart: always
+    workshop-nginx:
+        image: "nginx:1-alpine"
+        container_name: "workshop-nginx"
+        links:
+          - "workshop-php:workshop-php.host"
+        ports:
+          - 8080:80
+        volumes:
+            - "./:/h3-workshop:rw"
+            - "./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:r"
+        working_dir: /h3-workshop
+        restart: always
+    workshop-mariadb:
+        image: "mariadb:10.6"
+        container_name: "workshop-mariadb"
+        volumes:
+            - "._mysql_data_dir/:/var/lib/mysql:rw"
+        ports:
+          - 3307:3306
+        environment:
+          - MARIADB_USER
+          - MARIADB_PASSWORD
+          - MARIADB_DATABASE
+          - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
+        restart: always
