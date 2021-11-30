@@ -11,6 +11,14 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class DefaultController extends AbstractController
 {
+    /**
+     * @var HttpClientInterface
+     */
+    private $httpClient;
+
+    /**
+     * @var LoggerInterface
+     */
     private $logger;
 
     public function __construct(
