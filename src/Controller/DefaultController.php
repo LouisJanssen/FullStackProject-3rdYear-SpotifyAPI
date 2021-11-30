@@ -2,25 +2,23 @@
 
 namespace App\Controller;
 
-use App\Entity\NotionPage;
-use App\Entity\User;
-use App\Service\NotionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class DefaultController extends AbstractController
 {
-    /*
-     * @var NotionService
-     */
-    private $notionService;
+    private $logger;
 
-    public function __construct(NotionService $notionService)
+    public function __construct(
+        LoggerInterface $logger,
+        HttpClientInterface $httpClient)
     {
-        $this->notionService = $notionService;
+        $this->logger = $logger;
+        $this->httpClient = $httpClient;
     }
 
     /**
@@ -32,38 +30,6 @@ class DefaultController extends AbstractController
     }
 
     /**
-     * @Route("/savePages", name="savePages")
-     */
-    public function savePages(): Response
-    {
-        $pages = $this->notionService->storeNotionPages();
-
-        return $this->json('Notion pages saved');
-    }
-
-    /**
-     * @Route("/notionPages", name="notionPages")
-     */
-    public function getNotionPages(): Response
-    {
-        $pages = $this->getDoctrine()->getRepository(NotionPage::class)->findAll();
-
-        $returnArray = [];
-
-        /** @var NotionPage $page */
-        foreach ($pages as $page){
-            $returnArray[] = [
-                'id' => $page->getId(),
-                'notionId' => $page->getNotionId(),
-                'title' => $page->getTitle(),
-                'creationDate' => $page->getCreationDate()->format(DATE_ATOM),
-            ];
-        }
-
-        return $this->json($returnArray);
-    }
-
-    /**
      * @Route("/error", name="error")
      */
     public function error(): Response
@@ -71,42 +37,62 @@ class DefaultController extends AbstractController
         return $this->json('Error');
     }
 
-     /**
-     * @Route("/login", name="login")
+    /**
+     * @Route("/oauth", name="oauth")
      */
-    public function login(Request $request): Response
+    public function oauth(): Response
     {
-        $params = json_decode($request->getContent(), true);
+        $oauth_string = sprintf(
+            'https://accounts.spotify.com/authorize?client_id=%s&response_type=code&redirect_uri=http://127.0.0.1:8080/exchange_token&scope=user-read-private',
+            $this->getParameter('spotify_client_id')
+        );
 
-        if (!isset($params['username']) || empty($params['username'])) {
-            throw new HttpException(400, 'Missing username parameter.');
+        return $this->redirect($oauth_string);
+    }
+
+    /**
+     * @Route("/exchange_token", name="exchange_token")
+     */
+    public function token(Request $request): Response
+    {
+        $authorization_code = $request->get('code');
+
+        try {
+
+            $body = [
+                'redirect_uri' => $this->getParameter('spotify_redirect_uri'),
+                'code' => $authorization_code,
+                'grant_type' => 'authorization_code'
+            ];
+
+            $basicAuth = base64_encode(sprintf('%s:%s', $this->getParameter('spotify_client_id'), $this->getParameter('spotify_client_secret')));
+
+            $header = [
+                'Authorization' => sprintf('Basic %s', $basicAuth),
+                'Content-Type' => 'application/x-www-form-urlencoded'
+            ];
+
+            $response = $this->httpClient->request(
+                'POST',
+                'https://accounts.spotify.com/api/token',
+                [
+                    'body' => $body,
+                    'headers' => $header,
+                ]
+
+            );
+
+            $json_response = json_decode($response->getContent(), true);
+        } catch (\Exception $e) {
+            $this->logger->error(
+                sprintf(
+                    'Error : %s',
+                    $e->getMessage()
+                )
+            );
+            return $this->json($e->getMessage());
         }
 
-        if (!isset($params['email']) || empty($params['email'])) {
-            throw new HttpException(400, 'Missing email parameter.');
-        }
-
-        $entityManager = $this->getDoctrine()->getManager();
-
-        $user = $entityManager->getRepository(User::class)->findOneByEmail($params['email']);
-
-        if (null === $user) {
-            $user = new User();
-        }
-
-        $user->setUsername($params['username'])
-            ->setEmail($params['email'])
-        ;
-
-        $entityManager->persist($user);
-        $entityManager->flush();
-
-        $returnArray = [
-            'id' => $user->getId(),
-            'username' => $user->getUsername(),
-            'email' => $user->getEmail(),
-        ];
-
-        return $this->json($returnArray);
+        return $this->json($json_response);
     }
 }
