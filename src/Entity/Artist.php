@@ -162,7 +162,6 @@ class Artist
                 $track->setArtist(null);
             }
         }
-
         return $this;
     }
 }
