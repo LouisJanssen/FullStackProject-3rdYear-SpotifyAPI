@@ -140,7 +140,8 @@ class DefaultController extends AbstractController
 
         $accessToken = $user->getAccessToken();
         //$artistId = '1DgBVE3lCnC7Osg9zpAt6N';
-        $artistId = $request->body->get('artistId');
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
         $this->spotifyService->followSpotifyArtist($accessToken, $artistId);
         return $this->json('Artist followed');
     }

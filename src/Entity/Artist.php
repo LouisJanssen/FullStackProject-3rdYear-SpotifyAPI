@@ -54,6 +54,11 @@ class Artist
      */
     private $genres;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $artistVotes;
+
 
     public function __construct()
     {
@@ -178,6 +183,18 @@ class Artist
         if ($this->genres->removeElement($genre)) {
             $genre->removeArtist($this);
         }
+
+        return $this;
+    }
+
+    public function getArtistVotes(): ?int
+    {
+        return $this->artistVotes;
+    }
+
+    public function setArtistVotes(?int $artistVotes): self
+    {
+        $this->artistVotes = $artistVotes;
 
         return $this;
     }
