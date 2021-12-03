@@ -52,7 +52,7 @@ class DefaultController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->json('Hello world');
+        return $this->json('Welcome !');
     }
 
     /**
