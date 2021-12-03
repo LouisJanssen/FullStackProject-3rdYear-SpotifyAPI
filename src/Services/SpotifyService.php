@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Services;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,24 +34,39 @@ class SpotifyService
         $this->parameterBag = $parameterBag;
     }
 
-    public function getSpotifyArtist(): array
+    public function getSpotifyUser($userAccessToken): array
     {
         $spotifyBaseUrl = $this->parameterBag->get('spotify_base_url');
 
-        $notionSearchUrl = sprintf('%s/search', $notionBaseUrl);
-        $authorizationHeader = sprintf('Bearer %s', $notionToken);
+        $spotifyCurrentUserUrl = sprintf('%s/me', $spotifyBaseUrl);
+        $authorizationHeader = sprintf('Bearer %s', $userAccessToken);
 
-        $pages = $this->httpClient->request('POST', $notionSearchUrl,[
-            'body' => [
-                'query' => '',
-            ],
+        $userInfo = $this->httpClient->request('GET', $spotifyCurrentUserUrl,[
+            'body' => [],
             'headers' => [
                 'Authorization' => $authorizationHeader,
-                'Notion-Version' => '2021-08-16'
+                'Content-Type' => 'application/json'
             ]
-        ]);
+        ])  ;
+        return json_decode($userInfo->getContent(), true);
+    }
 
-        return json_decode($pages->getContent(), true);
+    public function storeSpotifyUser($userAccessToken): array
+    {
+        $userInfo = $this->getSpotifyUser($userAccessToken);
+
+        $user = new User();
+
+        $user
+            ->setUserId($userInfo['id'])
+            ->setUsername($userInfo['display_name'])
+            ->setUserImageUrl('test')
+            ->setAccessToken($userAccessToken);
+        $this->entityManager->persist($user);
+        $userInfo[] = $user;
+
+        $this->entityManager->flush();
+        return $userInfo;
     }
 
     public function storeNotionPages(): array

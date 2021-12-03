@@ -40,11 +40,6 @@ class Artist
     private $followers;
 
     /**
-     * @ORM\Column(type="array")
-     */
-    private $genres = [];
-
-    /**
      * @ORM\Column(type="string", length=255)
      */
     private $image;
@@ -54,9 +49,15 @@ class Artist
      */
     private $track;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=Genre::class, mappedBy="artists")
+     */
+    private $genres;
+
     public function __construct()
     {
         $this->track = new ArrayCollection();
+        $this->genres = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -112,18 +113,6 @@ class Artist
         return $this;
     }
 
-    public function getGenres(): ?array
-    {
-        return $this->genres;
-    }
-
-    public function setGenres(array $genres): self
-    {
-        $this->genres = $genres;
-
-        return $this;
-    }
-
     public function getImage(): ?string
     {
         return $this->image;
@@ -162,6 +151,33 @@ class Artist
                 $track->setArtist(null);
             }
         }
+        return $this;
+    }
+
+    /**
+     * @return Collection|Genre[]
+     */
+    public function getGenres(): Collection
+    {
+        return $this->genres;
+    }
+
+    public function addGenre(Genre $genre): self
+    {
+        if (!$this->genres->contains($genre)) {
+            $this->genres[] = $genre;
+            $genre->addArtist($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGenre(Genre $genre): self
+    {
+        if ($this->genres->removeElement($genre)) {
+            $genre->removeArtist($this);
+        }
+
         return $this;
     }
 }
