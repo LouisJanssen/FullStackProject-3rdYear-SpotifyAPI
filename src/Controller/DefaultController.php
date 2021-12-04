@@ -69,7 +69,7 @@ class DefaultController extends AbstractController
     public function oauth(): Response
     {
         $oauth_string = sprintf(
-            'https://accounts.spotify.com/authorize?client_id=%s&response_type=code&redirect_uri=%s&scope=user-read-private user-read-email user-follow-modify playlist-modify-public playlist-modify-private',
+            'https://accounts.spotify.com/authorize?client_id=%s&response_type=code&redirect_uri=%s&scope=user-read-private user-read-email user-follow-modify playlist-modify-public playlist-modify-private user-library-modify',
             $this->getParameter('spotify_client_id'),
             $this->getParameter('spotify_redirect_uri')
         );
@@ -202,5 +202,23 @@ class DefaultController extends AbstractController
         $tracks = $this->spotifyService->getTopTracksForArtist($accessToken, $artistId);
 
         return $this->json($tracks);
+    }
+
+    /**
+     * @Route("/addTrack", name="addTrack")
+     */
+    public function addTrack(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $accessToken = $user->getAccessToken();
+        $tracksContent = json_decode($request->getContent(), true);
+        $tracksId = $tracksContent['id'];
+        $this->spotifyService->addTrackPlaylist($accessToken, $tracksId);
+        return $this->json('Song added to playlist');
     }
 }

@@ -100,7 +100,7 @@ class SpotifyService
                 'Content-Type' => 'application/json'
             ]
         ])  ;
-        var_dump($artistFollowed->getStatusCode());
+        //var_dump($artistFollowed->getStatusCode());
         return ['Artist Followed'];
     }
 
@@ -222,5 +222,25 @@ class SpotifyService
         }
 
         return $returnArray;
+    }
+
+    public function addTrackPlaylist($accessToken, $tracksId): array
+    {
+        $spotifyBaseUrl = $this->parameterBag->get('spotify_base_url');
+
+        $spotifyCurrentUserUrl = sprintf('%s/me/tracks', $spotifyBaseUrl);
+        $authorizationHeader = sprintf('Bearer %s', $accessToken);
+
+        $trackAdded = $this->httpClient->request('PUT', $spotifyCurrentUserUrl,[
+            'json' => [
+                $tracksId
+            ],
+            'headers' => [
+                'Authorization' => $authorizationHeader,
+                'Content-Type' => 'application/json'
+            ]
+        ]);
+        var_dump($trackAdded->getStatusCode());
+        return ['Song added to Playlist'];
     }
 }
