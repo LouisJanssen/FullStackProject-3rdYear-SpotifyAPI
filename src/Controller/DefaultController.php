@@ -188,8 +188,9 @@ class DefaultController extends AbstractController
         $accessToken = $user->getAccessToken();
         $artistContent = json_decode($request->getContent(), true);
         $artistId = $artistContent['id'];
-        $artist = $this->artistService->getSpotifyArtist($accessToken, $artistId);
+        //$artist = $this->artistService->getSpotifyArtist($accessToken, $artistId);
 
-        return $this->json($artist);
+        //return $this->json($artist);
+        return $this->json('test');
     }
 }
