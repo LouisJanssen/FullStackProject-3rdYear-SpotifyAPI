@@ -184,4 +184,23 @@ class DefaultController extends AbstractController
 
         return $this->json($artist);
     }
+
+    /**
+     * @Route("/getTopTracks", name="getTopTracks")
+     */
+    public function getTopTracks(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $accessToken = $user->getAccessToken();
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
+        $tracks = $this->spotifyService->getTopTracksForArtist($accessToken, $artistId);
+
+        return $this->json($tracks);
+    }
 }

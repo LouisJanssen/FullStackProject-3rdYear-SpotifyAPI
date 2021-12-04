@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Artist;
 use App\Entity\Genre;
+use App\Entity\Track;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -162,6 +163,63 @@ class SpotifyService
             'artistFollowers' => $artist->getFollowers(),
             'artistPopularity' => $artist->getPopularity(),
         ];
+
+        return $returnArray;
+    }
+
+    public function getTopTracksForArtist($userAccessToken, $artistId): array
+    {
+        $spotifyBaseUrl = $this->parameterBag->get('spotify_base_url');
+        $artist = $this->entityManager->getRepository(Artist::class)->findOneByArtistId($artistId);
+
+        $spotifySearchUrl = sprintf('%s/artists/%s/top-tracks?market=FR', $spotifyBaseUrl, $artistId);
+        $authorizationHeader = sprintf('Bearer %s', $userAccessToken);
+
+        $response = $this->httpClient->request('GET', $spotifySearchUrl,[
+            'body' => [],
+            'headers' => [
+                'Authorization' => $authorizationHeader,
+                'Content-Type' => 'application/json',
+            ]
+        ]);
+
+        $jsonTracks = json_decode($response->getContent(), true);
+
+        $existingTracks = $this->entityManager->getRepository(Track::class)->findByArtist($artist);
+
+        if ([] === $existingTracks) {
+
+        foreach($jsonTracks['tracks'] as $jsonTrack) {
+
+            $trackImage = $jsonTrack['album']['images'][0]['url'] ?? 'https://redcdn.net/nimo/monthly_2019_09/small.quokka-3.jpg.1f1fba9c647d47bc0644b04f689dae47.jpg';
+            $track = new Track();
+
+            $track
+                ->setTrackId($jsonTrack['id'])
+                ->setTrackName($jsonTrack['name'])
+                ->setPreviewUrl($jsonTrack['preview_url'])
+                ->setArtist($artist)
+                ->setTrackImageUrl($trackImage);
+
+            $this->entityManager->persist($track);
+        }
+        $this->entityManager->persist($artist);
+        $this->entityManager->flush();
+
+        }
+
+        $tracks = $this->entityManager->getRepository(Track::class)->findByArtist($artist);
+
+        $returnArray = [];
+        foreach ($tracks as $track){
+            $returnArray[] = [
+                'id' => $track->getId(),
+                'trackId' => $track->getTrackId(),
+                'name' => $track->getTrackName(),
+                'previewUrl' => $track->getPreviewUrl(),
+                'trackImage' => $track->getTrackImageUrl(),
+            ];
+        }
 
         return $returnArray;
     }
