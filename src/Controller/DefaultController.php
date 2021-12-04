@@ -36,25 +36,24 @@ class DefaultController extends AbstractController
     */
     private $userService;
 
-    ///*
-    //* @var $artistService
-    //*/
-    //private $artistService;
+    /*
+    * @var $artistService
+    */
+    private $artistService;
 
     public function __construct(
         LoggerInterface $logger,
         HttpClientInterface $httpClient,
         SpotifyService $spotifyService,
-        UserService $userService
-        //UserService $userService,
-        //ArtistService $artistService
+        UserService $userService,
+        ArtistService $artistService
     )
     {
         $this->logger = $logger;
         $this->httpClient = $httpClient;
         $this->spotifyService = $spotifyService;
         $this->userService = $userService;
-        //$this->artistService = $artistService;
+        $this->artistService = $artistService;
     }
 
     /**
