@@ -124,8 +124,7 @@ class DefaultController extends AbstractController
 
         $user = $this->spotifyService->storeSpotifyUser($userAccessToken);
 
-        //return $this->json($json_response);
-        return $this->json($user);
+        return $this->json($json_response);
     }
 
     /**
@@ -140,8 +139,8 @@ class DefaultController extends AbstractController
         }
 
         $accessToken = $user->getAccessToken();
+        //$artistId = '1DgBVE3lCnC7Osg9zpAt6N';
         $artistContent = json_decode($request->getContent(), true);
-        var_dump($artistContent);
         $artistId = $artistContent['id'];
         $this->spotifyService->followSpotifyArtist($accessToken, $artistId);
         return $this->json('Artist followed');

@@ -59,7 +59,6 @@ class SpotifyService
 
         if (null !== $existingUserId) {
             $existingUserId->setAccessToken($userAccessToken);
-            $userFrontToken = $existingUserId->getFrontToken();
         }
         else{
             $user = new User();
@@ -75,10 +74,9 @@ class SpotifyService
                 ->setFrontToken($frontTokenGenerate);
             $this->entityManager->persist($user);
             $userInfo[] = $user;
-            $userFrontToken = $user->getFrontToken();
         }
         $this->entityManager->flush();
-        return [$userFrontToken];
+        return $userInfo;
     }
 
     public function followSpotifyArtist($accessToken, $artistId): array
