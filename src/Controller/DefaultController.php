@@ -149,6 +149,7 @@ class DefaultController extends AbstractController
 
         $accessToken = $user->getAccessToken();
         $artistContent = json_decode($request->getContent(), true);
+        var_dump($artistContent);
         $artistId = $artistContent['id'];
         $this->spotifyService->followSpotifyArtist($accessToken, $artistId);
         return $this->json('Artist followed');
@@ -174,5 +175,22 @@ class DefaultController extends AbstractController
         return $this->json($returnArray);
     }
 
+    /**
+     * @Route("/getArtist", name="getArtist")
+     */
+    public function getArtist(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
 
+        $accessToken = $user->getAccessToken();
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
+        $artist = $this->artistService->getSpotifyArtist($accessToken, $artistId);
+
+        return $this->json($artist);
+    }
 }
