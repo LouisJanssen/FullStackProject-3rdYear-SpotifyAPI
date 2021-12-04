@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Service\SpotifyService;
 use App\Service\UserService;
-use App\Service\ArtistService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -36,24 +35,16 @@ class DefaultController extends AbstractController
     */
     private $userService;
 
-    /*
-    * @var $artistService
-    */
-    private $artistService;
-
     public function __construct(
         LoggerInterface $logger,
         HttpClientInterface $httpClient,
         SpotifyService $spotifyService,
-        UserService $userService,
-        ArtistService $artistService
-    )
+        UserService $userService)
     {
         $this->logger = $logger;
         $this->httpClient = $httpClient;
         $this->spotifyService = $spotifyService;
         $this->userService = $userService;
-        $this->artistService = $artistService;
     }
 
     /**
@@ -189,7 +180,7 @@ class DefaultController extends AbstractController
         $accessToken = $user->getAccessToken();
         $artistContent = json_decode($request->getContent(), true);
         $artistId = $artistContent['id'];
-        $artist = $this->artistService->getSpotifyArtist($accessToken, $artistId);
+        $artist = $this->spotifyService->getSpotifyArtist($accessToken, $artistId);
 
         return $this->json($artist);
     }
