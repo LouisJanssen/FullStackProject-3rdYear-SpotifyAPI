@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Service\SpotifyService;
 use App\Service\UserService;
+use App\Service\ArtistService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,16 +36,23 @@ class DefaultController extends AbstractController
     */
     private $userService;
 
+    /*
+    * @var $artistService
+    */
+    private $artistService;
+
     public function __construct(
         LoggerInterface $logger,
         HttpClientInterface $httpClient,
         SpotifyService $spotifyService,
-        UserService $userService)
+        UserService $userService,
+        ArtistService $artistService)
     {
         $this->logger = $logger;
         $this->httpClient = $httpClient;
         $this->spotifyService = $spotifyService;
         $this->userService = $userService;
+        $this->artistService = $artistService;
     }
 
     /**
@@ -141,7 +149,6 @@ class DefaultController extends AbstractController
 
         $accessToken = $user->getAccessToken();
         $artistContent = json_decode($request->getContent(), true);
-        var_dump($artistContent);
         $artistId = $artistContent['id'];
         $this->spotifyService->followSpotifyArtist($accessToken, $artistId);
         return $this->json('Artist followed');
@@ -165,5 +172,24 @@ class DefaultController extends AbstractController
             'userImageUrl' => $user->getUserImageUrl(),
         ];
         return $this->json($returnArray);
+    }
+
+    /**
+     * @Route("/getArtist", name="getArtist")
+     */
+    public function getArtist(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $accessToken = $user->getAccessToken();
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
+        $artist = $this->artistService->getSpotifyArtist($accessToken, $artistId);
+
+        return $this->json($artist);
     }
 }
