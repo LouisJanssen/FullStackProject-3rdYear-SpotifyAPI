@@ -240,4 +240,20 @@ class DefaultController extends AbstractController
 
         return $this->json($response);
     }
+
+    /**
+     * @Route("/resetAllVotes", name="resetAllVotes")
+     */
+    public function resetAllVotes(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $response = $this->spotifyService->resetVotes();
+
+        return $this->json($response);
+    }
 }

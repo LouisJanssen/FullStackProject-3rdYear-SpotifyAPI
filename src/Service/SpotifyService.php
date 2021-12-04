@@ -268,4 +268,20 @@ class SpotifyService
 
         return [$response];
     }
+    public function resetVotes(): array
+    {
+        $artists = $this->entityManager->getRepository(Artist::class)->findAll();
+        $users = $this->entityManager->getRepository(User::class)->findAll();
+
+        foreach ($artists as $artist){
+            $artist->setArtistVotes(0);
+        }
+        foreach ($users as $user){
+            $user->setAlreadyVoted(false);
+        }
+
+        $this->entityManager->flush();
+
+        return ['All votes reseted'];
+    }
 }
