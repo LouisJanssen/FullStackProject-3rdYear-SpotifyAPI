@@ -63,7 +63,7 @@ class SpotifyService
         }
         else{
             $user = new User();
-            $userImageUrl = $userInfo['images']['url'] ?? 'https://redcdn.net/nimo/monthly_2019_09/small.quokka-3.jpg.1f1fba9c647d47bc0644b04f689dae47.jpg';
+            $userImageUrl = $userInfo['images'][0]['url'] ?? 'https://redcdn.net/nimo/monthly_2019_09/small.quokka-3.jpg.1f1fba9c647d47bc0644b04f689dae47.jpg';
 
             $frontTokenGenerate = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
 
