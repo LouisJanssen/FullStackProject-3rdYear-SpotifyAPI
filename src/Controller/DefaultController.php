@@ -167,26 +167,6 @@ class DefaultController extends AbstractController
     }
 
     /**
-     * @Route("/getUserInfo", name="getUserInfo")
-     */
-    public function getUserInfo(Request $request): Response
-    {
-        /** @var User $user */
-        $user = $this->userService->getUserFromRequest($request);
-        if (null === $user) {
-            return new Response('Unauthorized', 401);
-        }
-
-        $returnArray[] = [
-            'id' => $user->getId(),
-            'userId' => $user->getUserId(),
-            'username' => $user->getUsername(),
-            'userImageUrl' => $user->getUserImageUrl(),
-        ];
-        return $this->json($returnArray);
-    }
-    
-    /**
      * @Route("/getArtist", name="getArtist")
      */
     public function getArtist(Request $request): Response
