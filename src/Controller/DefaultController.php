@@ -36,23 +36,25 @@ class DefaultController extends AbstractController
     */
     private $userService;
 
-    /*
-    * @var $artistService
-    */
-    private $artistService;
+    ///*
+    //* @var $artistService
+    //*/
+    //private $artistService;
 
     public function __construct(
         LoggerInterface $logger,
         HttpClientInterface $httpClient,
         SpotifyService $spotifyService,
-        UserService $userService,
-        ArtistService $artistService)
+        UserService $userService
+        //UserService $userService,
+        //ArtistService $artistService
+    )
     {
         $this->logger = $logger;
         $this->httpClient = $httpClient;
         $this->spotifyService = $spotifyService;
         $this->userService = $userService;
-        $this->artistService = $artistService;
+        //$this->artistService = $artistService;
     }
 
     /**
@@ -149,7 +151,6 @@ class DefaultController extends AbstractController
 
         $accessToken = $user->getAccessToken();
         $artistContent = json_decode($request->getContent(), true);
-        var_dump($artistContent);
         $artistId = $artistContent['id'];
         $this->spotifyService->followSpotifyArtist($accessToken, $artistId);
         return $this->json('Artist followed');
