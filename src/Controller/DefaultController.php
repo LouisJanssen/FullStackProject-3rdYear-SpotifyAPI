@@ -2,9 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
+use App\Service\SpotifyService;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -21,12 +25,26 @@ class DefaultController extends AbstractController
      */
     private $logger;
 
+    /*
+    * @var SpotifyService
+    */
+    private $spotifyService;
+
+    /*
+    * @var $userService
+    */
+    private $userService;
+
     public function __construct(
         LoggerInterface $logger,
-        HttpClientInterface $httpClient)
+        HttpClientInterface $httpClient,
+        SpotifyService $spotifyService,
+        UserService $userService)
     {
         $this->logger = $logger;
         $this->httpClient = $httpClient;
+        $this->spotifyService = $spotifyService;
+        $this->userService = $userService;
     }
 
     /**
@@ -34,7 +52,7 @@ class DefaultController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->json('Hello world');
+        return $this->json('Welcome !');
     }
 
     /**
@@ -51,8 +69,9 @@ class DefaultController extends AbstractController
     public function oauth(): Response
     {
         $oauth_string = sprintf(
-            'https://accounts.spotify.com/authorize?client_id=%s&response_type=code&redirect_uri=http://127.0.0.1:8080/exchange_token&scope=user-read-private',
-            $this->getParameter('spotify_client_id')
+            'https://accounts.spotify.com/authorize?client_id=%s&response_type=code&redirect_uri=%s&scope=user-read-private user-read-email user-follow-modify playlist-modify-public playlist-modify-private user-library-modify',
+            $this->getParameter('spotify_client_id'),
+            $this->getParameter('spotify_redirect_uri')
         );
 
         return $this->redirect($oauth_string);
@@ -101,6 +120,140 @@ class DefaultController extends AbstractController
             return $this->json($e->getMessage());
         }
 
-        return $this->json($json_response);
+        $userAccessToken = $json_response['access_token'];
+
+        $user = $this->spotifyService->storeSpotifyUser($userAccessToken);
+
+        //return $this->json($json_response);
+        return $this->json($user);
+    }
+
+    /**
+     * @Route("/followArtist", name="followArtist")
+     */
+    public function followArtist(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $accessToken = $user->getAccessToken();
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
+        $this->spotifyService->followSpotifyArtist($accessToken, $artistId);
+        return $this->json('Artist followed');
+    }
+
+    /**
+     * @Route("/getUserInfos", name="getUserInfos")
+     */
+    public function getUserInfos(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $returnArray[] = [
+            'id' => $user->getId(),
+            'userId' => $user->getUserId(),
+            'username' => $user->getUsername(),
+            'userImageUrl' => $user->getUserImageUrl(),
+            'alreadyVoted' => $user->getAlreadyVoted()
+        ];
+        return $this->json($returnArray);
+    }
+
+    /**
+     * @Route("/getArtist", name="getArtist")
+     */
+    public function getArtist(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $accessToken = $user->getAccessToken();
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
+        $artist = $this->spotifyService->getSpotifyArtist($accessToken, $artistId);
+
+        return $this->json($artist);
+    }
+
+    /**
+     * @Route("/getTopTracks", name="getTopTracks")
+     */
+    public function getTopTracks(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $accessToken = $user->getAccessToken();
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
+        $tracks = $this->spotifyService->getTopTracksForArtist($accessToken, $artistId);
+
+        return $this->json($tracks);
+    }
+
+    /**
+     * @Route("/addTrack", name="addTrack")
+     */
+    public function addTrack(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $accessToken = $user->getAccessToken();
+        $tracksContent = json_decode($request->getContent(), true);
+        $tracksId = $tracksContent['id'];
+        $this->spotifyService->addTrackPlaylist($accessToken, $tracksId);
+        return $this->json('Song added to playlist');
+    }
+
+    /**
+     * @Route("/vote", name="vote")
+     */
+    public function vote(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
+        $response = $this->spotifyService->voteForArtist($user, $artistId);
+
+        return $this->json($response);
+    }
+
+    /**
+     * @Route("/resetAllVotes", name="resetAllVotes")
+     */
+    public function resetAllVotes(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $response = $this->spotifyService->resetVotes();
+
+        return $this->json($response);
     }
 }

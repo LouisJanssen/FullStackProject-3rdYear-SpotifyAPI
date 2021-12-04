@@ -38,6 +38,11 @@ class Track
      */
     private $artist;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $TrackImageUrl;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -87,6 +92,18 @@ class Track
     public function setArtist(?Artist $artist): self
     {
         $this->artist = $artist;
+
+        return $this;
+    }
+
+    public function getTrackImageUrl(): ?string
+    {
+        return $this->TrackImageUrl;
+    }
+
+    public function setTrackImageUrl(string $TrackImageUrl): self
+    {
+        $this->TrackImageUrl = $TrackImageUrl;
 
         return $this;
     }

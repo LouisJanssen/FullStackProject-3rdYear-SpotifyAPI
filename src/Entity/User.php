@@ -37,6 +37,16 @@ class User
      */
     private $userImageUrl;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $frontToken;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $alreadyVoted;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -86,6 +96,30 @@ class User
     public function setUserImageUrl(string $userImageUrl): self
     {
         $this->userImageUrl = $userImageUrl;
+
+        return $this;
+    }
+
+    public function getFrontToken(): ?string
+    {
+        return $this->frontToken;
+    }
+
+    public function setFrontToken(string $frontToken): self
+    {
+        $this->frontToken = $frontToken;
+
+        return $this;
+    }
+
+    public function getAlreadyVoted(): ?bool
+    {
+        return $this->alreadyVoted;
+    }
+
+    public function setAlreadyVoted(bool $alreadyVoted): self
+    {
+        $this->alreadyVoted = $alreadyVoted;
 
         return $this;
     }
