@@ -75,7 +75,8 @@ class SpotifyService
                 ->setUsername($userInfo['display_name'])
                 ->setUserImageUrl($userImageUrl)
                 ->setAccessToken($userAccessToken)
-                ->setFrontToken($frontTokenGenerate);
+                ->setFrontToken($frontTokenGenerate)
+                ->setAlreadyVoted(false);
             $this->entityManager->persist($user);
             $userInfo[] = $user;
             $userFrontToken = $user->getFrontToken();
@@ -133,7 +134,8 @@ class SpotifyService
             ->setArtistName($jsonArtist['name'])
             ->setPopularity($jsonArtist['popularity'])
             ->setFollowers($jsonArtist['followers']['total'])
-            ->setImage($artistImageUrl);
+            ->setImage($artistImageUrl)
+            ->setArtistVotes(0);
 
         foreach ($jsonArtist['genres'] as $jsonGenre) {
 
@@ -162,6 +164,7 @@ class SpotifyService
             'artistImageUrl' => $artist->getImage(),
             'artistFollowers' => $artist->getFollowers(),
             'artistPopularity' => $artist->getPopularity(),
+            'artistVotes' => $artist->getArtistVotes()
         ];
 
         return $returnArray;
@@ -240,7 +243,29 @@ class SpotifyService
                 'Content-Type' => 'application/json'
             ]
         ]);
-        var_dump($trackAdded->getStatusCode());
+        //var_dump($trackAdded->getStatusCode());
         return ['Song added to Playlist'];
+    }
+
+    public function voteForArtist($user, $artistId): array
+    {
+        $artistInfos = $this->entityManager->getRepository(Artist::class)->findOneByArtistId($artistId);
+        $asVoted = $user->getAlreadyVoted();
+        $response = 'Vote added !';
+
+        if(!$asVoted){
+            $artistVotes = $artistInfos->getArtistVotes();
+            $artistVotes += 1;
+            $artistInfos->setArtistVotes($artistVotes);
+
+            $user->setAlreadyVoted(true);
+
+            $this->entityManager->flush();
+        }
+        else{
+            $response = "User already vote ! Can't vote more than once.";
+        }
+
+        return [$response];
     }
 }

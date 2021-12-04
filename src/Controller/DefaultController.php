@@ -162,6 +162,7 @@ class DefaultController extends AbstractController
             'userId' => $user->getUserId(),
             'username' => $user->getUsername(),
             'userImageUrl' => $user->getUserImageUrl(),
+            'alreadyVoted' => $user->getAlreadyVoted()
         ];
         return $this->json($returnArray);
     }
@@ -220,5 +221,23 @@ class DefaultController extends AbstractController
         $tracksId = $tracksContent['id'];
         $this->spotifyService->addTrackPlaylist($accessToken, $tracksId);
         return $this->json('Song added to playlist');
+    }
+
+    /**
+     * @Route("/vote", name="vote")
+     */
+    public function vote(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
+        $response = $this->spotifyService->voteForArtist($user, $artistId);
+
+        return $this->json($response);
     }
 }
