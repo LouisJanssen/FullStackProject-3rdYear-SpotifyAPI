@@ -137,7 +137,7 @@ class DefaultController extends AbstractController
 
         //return $this->json($json_response);
         //return $this->json($user);
-        $redirectUrl = sprintf('http://127.0.0.1:8081?token=%s', $userToken);
+        $redirectUrl = sprintf('http://127.0.0.1:3000/?token=%s', $userToken);
         return $this->redirect($redirectUrl);
     }
 
