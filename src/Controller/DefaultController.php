@@ -12,6 +12,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 class DefaultController extends AbstractController
 {
@@ -35,16 +36,23 @@ class DefaultController extends AbstractController
     */
     private $userService;
 
+    /**
+     * @var EntityManagerInterface
+     */
+    private $entityManager;
+
     public function __construct(
         LoggerInterface $logger,
         HttpClientInterface $httpClient,
         SpotifyService $spotifyService,
-        UserService $userService)
+        UserService $userService,
+        EntityManagerInterface $entityManager)
     {
         $this->logger = $logger;
         $this->httpClient = $httpClient;
         $this->spotifyService = $spotifyService;
         $this->userService = $userService;
+        $this->entityManager = $entityManager;
     }
 
     /**
@@ -124,8 +132,13 @@ class DefaultController extends AbstractController
 
         $user = $this->spotifyService->storeSpotifyUser($userAccessToken);
 
+        $currentUser = $this->entityManager->getRepository(User::class)->findOneByAccessToken($userAccessToken);
+        $userToken = $currentUser->getFrontToken();
+
         //return $this->json($json_response);
-        return $this->json($user);
+        //return $this->json($user);
+        $redirectUrl = sprintf('http://127.0.0.1:8080?token=%s', $userToken);
+        return $this->redirect($redirectUrl);
     }
 
     /**
