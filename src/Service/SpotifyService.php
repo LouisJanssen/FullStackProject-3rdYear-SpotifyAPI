@@ -209,8 +209,6 @@ class SpotifyService
         $this->entityManager->persist($artist);
         $this->entityManager->flush();
 
-        }
-
         $tracks = $this->entityManager->getRepository(Track::class)->findByArtist($artist);
 
         $returnArray = [];
@@ -222,6 +220,18 @@ class SpotifyService
                 'previewUrl' => $track->getPreviewUrl(),
                 'trackImage' => $track->getTrackImageUrl(),
             ];
+        }
+        } else{
+            $returnArray = [];
+            foreach ($existingTracks as $track){
+                $returnArray[] = [
+                    'id' => $track->getId(),
+                    'trackId' => $track->getTrackId(),
+                    'name' => $track->getTrackName(),
+                    'previewUrl' => $track->getPreviewUrl(),
+                    'trackImage' => $track->getTrackImageUrl(),
+                ];
+            }
         }
 
         return $returnArray;
