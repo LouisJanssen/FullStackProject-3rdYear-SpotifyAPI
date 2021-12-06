@@ -137,8 +137,8 @@ class DefaultController extends AbstractController
 
         //return $this->json($json_response);
         //return $this->json($user);
-        //$redirectUrl = sprintf('https://roots-production.netlify.app/?token=%s', $userToken);
-        $redirectUrl = sprintf('https://roots-officiel.vercel.app/?token=%s', $userToken);
+        $redirectUrl = sprintf('https://roots-production.netlify.app/?token=%s', $userToken);
+        //$redirectUrl = sprintf('https://roots-officiel.vercel.app/?token=%s', $userToken);
         return $this->redirect($redirectUrl);
     }
 
