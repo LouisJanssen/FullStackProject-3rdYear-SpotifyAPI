@@ -269,4 +269,22 @@ class DefaultController extends AbstractController
 
         return $this->json($response);
     }
+
+    /**
+     * @Route("/undoVote", name="undoVote")
+     */
+    public function undoVote(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
+        $response = $this->spotifyService->undoVote($user, $artistId);
+
+        return $this->json($response);
+    }
 }
