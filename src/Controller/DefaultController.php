@@ -137,7 +137,7 @@ class DefaultController extends AbstractController
 
         //return $this->json($json_response);
         //return $this->json($user);
-        $redirectUrl = sprintf('http://127.0.0.1:3000/?token=%s', $userToken);
+        $redirectUrl = sprintf('https://roots-production.netlify.app/?token=%s', $userToken);
         return $this->redirect($redirectUrl);
     }
 
@@ -266,6 +266,24 @@ class DefaultController extends AbstractController
         }
 
         $response = $this->spotifyService->resetVotes();
+
+        return $this->json($response);
+    }
+
+    /**
+     * @Route("/undoVote", name="undoVote")
+     */
+    public function undoVote(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->userService->getUserFromRequest($request);
+        if (null === $user) {
+            return new Response('Unauthorized', 401);
+        }
+
+        $artistContent = json_decode($request->getContent(), true);
+        $artistId = $artistContent['id'];
+        $response = $this->spotifyService->undoVote($user, $artistId);
 
         return $this->json($response);
     }

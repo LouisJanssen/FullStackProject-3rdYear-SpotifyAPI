@@ -294,4 +294,26 @@ class SpotifyService
 
         return ['All votes reseted'];
     }
+
+    public function undoVote($user, $artistId): array
+    {
+        $artistInfos = $this->entityManager->getRepository(Artist::class)->findOneByArtistId($artistId);
+        $asVoted = $user->getAlreadyVoted();
+        $response = 'Vote deleted !';
+
+        if($asVoted){
+            $artistVotes = $artistInfos->getArtistVotes();
+            $artistVotes -= 1;
+            $artistInfos->setArtistVotes($artistVotes);
+
+            $user->setAlreadyVoted(false);
+
+            $this->entityManager->flush();
+        }
+        else{
+            $response = "Vote already deleted ! Can't undo more than once.";
+        }
+
+        return [$response];
+    }
 }
