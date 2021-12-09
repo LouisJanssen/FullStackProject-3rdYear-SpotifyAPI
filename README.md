@@ -1,10 +1,12 @@
-# H3 Fullstack Workshop
+# H3 Fullstack Project
 
-This project is the workshop project for the H3 fullstack lessons at HETIC.
+This project was done after a workshop for the H3 fullstack lessons at HETIC.
 
-In this project, we'll build a Notion pages downloader that enables saving pages to a custom database for later use, and commenting those pages.
+In this project, we had one week to develop a website based on an API of our choice. We chose to work with the API of Spotify to propose a vote service and leaderboards for our users based on small rising artists to find the new stars of the french music.
 
-This project is a web application, and uses Symfony and React.
+This is the backend part of the app. You can find the front end here : https://github.com/ZeAmine/roots-production
+
+This project is a web application, and uses Symfony and React with Typescript.
 
 ## Install the project
 
@@ -62,5 +64,3 @@ You're now ready to work with this stack !
 This project has two branches :
 - `main` : the main branch of the project
 - `develop` : the development branch of the project
-
-The main branch has purposefully not been committed in so that you can start with an empty repository and navigate the git tree.
